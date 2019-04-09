@@ -33,7 +33,7 @@ def get_area_codes():
 
 class JobCrawler:
     # headers
-    columns = ['salary', 'telephone', 'education', 'job name', 'experience', 'company flag', 'company name', 'job details', 'company trade', 'location', 'addr', 'company information', 'url']
+    columns = ['salary', 'telephone', 'education', 'job name', 'experience', 'location', 'addr', 'job details', 'company name', 'company flag', 'company people count', 'company trade', 'company information', 'url']
     # search url
     url = 'https://search.51job.com/list/{},000000,0000,00,9,99,{},2,{}.html?lang=c&stype=&postchannel=0000&workyear=99&cotype=99&degreefrom=99&jobterm=99&companysize=99&providesalary=99&lonlat=0%2C0&radius=-1&ord_field=0&confirmdate=9&fromType=&dibiaoid=0&address=&line=&specialarea=00&from=&welfare='
     
@@ -118,7 +118,7 @@ class JobCrawler:
         elif '万' in salary:
             salary = salary.split('万')[0]
         com_name = self.extract_info_by_xp(tree, '//a[contains(@class, "com_name")]/p/@title')
-        com_flag, _, com_trade = tree.xpath('//div[contains(@class, "com_tag")]/p/@title')
+        com_flag, com_people, com_trade = tree.xpath('//div[contains(@class, "com_tag")]/p/@title')
         job_msg = tree.xpath('//div[contains(@class, "job_msg")]/p/text()')
         job_msg = ''.join([i for i in job_msg if i.strip()]).replace('\xa0', '')
         com_msg = self.extract_info_by_xp(tree, '//div[starts-with(@class, "tmsg")]/text()')
@@ -126,7 +126,7 @@ class JobCrawler:
         phone = self.extract_info_by_regex(self.phone_ptn, job_msg+com_msg)
         tel = self.extract_info_by_regex(self.tel_ptn, job_msg+com_msg)
         phone = ','.join([phone, tel]).strip(',')
-        return [salary, phone, edu, job_name, expe, com_flag, com_name, job_msg, com_trade, loca, addr, com_msg]
+        return [salary, phone, edu, job_name, expe, loca, addr, job_msg, com_name, com_flag, com_people, com_trade, com_msg]
 
     def crawl(self, keyword, area='全国'):
         # crawl job information with given keyword
@@ -153,15 +153,30 @@ class JobCrawler:
                 try:
                     job_details = self.parse_job(tree)
                     job_details.append(link)
-                    self.writer.writerow(job_details)
-                    print(job_details)
+                    data = self.filter_people(job_details)
+                    if data:
+                        self.writer.writerow(job_details)
+                        print(job_details)
                 except:
-                    self.error_f.write(link+'\n')
+                    # self.error_f.write(link+'\n')
                     continue
 
+    def filter_people(self, data):
+        # rewrite this function to filter people by your own rules
+        salary, people_count = data[0], data[10]
+        try:
+            people_count = int(people_count.strip('人').split('于').split('-')[0])
+            if people_count <= 50:
+                return
+            salary = float(salary.split('-')[0])
+            if salary < 0.9:
+                return
+        except:
+            return data
+        return data
 
 if __name__ == '__main__':
-    keywords = ['电气工程师']
+    keywords = ['工业', '电气', '航空航天', '电子', '电力']
     area = '西安'
     crawler = JobCrawler()
     for x in keywords:
