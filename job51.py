@@ -45,7 +45,7 @@ class JobCrawler:
         self.writer.writerow(self.columns)
         # match telephone
         self.phone_ptn = re.compile('\d{11}')
-        self.tel_ptn = re.compile('[0-9-)]{12, 18}')
+        self.tel_ptn = re.compile('[0-9-]{12}')
         # save error url
         self.error_f = open('error.txt', 'w')
         # load area codes
