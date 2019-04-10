@@ -115,8 +115,14 @@ class JobCrawler:
             salary = salary.split('千')[0]
             low, high = salary.split('-')
             salary = str(round(float(low)/10, 1)) + '-' + str(round(float(high)/10, 1))
-        elif '万' in salary:
+        elif '万/月' in salary:
             salary = salary.split('万')[0]
+        elif '万/年' in salary:
+            salary = salary.split('万')[0]
+            low, high = salary.split('-')
+            low, high = round(float(low)/12, 1), round(float(high)/12, 1)
+            salary = '-'.join([str(low), str(high)])
+
         com_name = self.extract_info_by_xp(tree, '//a[contains(@class, "com_name")]/p/@title')
         com_flag, com_people, com_trade = tree.xpath('//div[contains(@class, "com_tag")]/p/@title')
         job_msg = tree.xpath('//div[contains(@class, "job_msg")]/p/text()')
@@ -153,10 +159,10 @@ class JobCrawler:
                 try:
                     job_details = self.parse_job(tree)
                     job_details.append(link)
-                    data = self.filter_people(job_details)
-                    if data:
-                        self.writer.writerow(job_details)
-                        print(job_details)
+                    # data = self.filter_people(job_details)
+                    # if data:
+                    self.writer.writerow(job_details)
+                    print(job_details)
                 except:
                     # self.error_f.write(link+'\n')
                     continue
@@ -165,15 +171,13 @@ class JobCrawler:
         # rewrite this function to filter people by your own rules
         salary, people_count = data[0], data[10]
         try:
-            people_count = int(people_count.strip('人').split('于').split('-')[0])
-            if people_count <= 50:
-                return
-            salary = float(salary.split('-')[0])
-            if salary < 0.9:
-                return
+            people_count = int(people_count.strip('人').split('于').split('-')[-1])
+            salary = float(salary.split('-')[-1])
+            print(people_count, salary)
+            if salary >= 1 and people_count > 50:
+                return data
         except:
-            return data
-        return data
+            return 
 
 if __name__ == '__main__':
     keywords = ['工业', '电气', '航空航天', '电子', '电力']
