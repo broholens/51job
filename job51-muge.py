@@ -6,12 +6,12 @@ import random
 import requests
 from lxml.html import etree  # pip install lxml
 from fake_useragent import UserAgent  # pip install fake-useragent
-# from fake_useragent.errors import FakeUserAgentError
+from fake_useragent.errors import FakeUserAgentError
 
 # fake_useragent.errors.FakeUserAgentError: Maximum amount of retries reached
 try:
     UserAgent()
-except:
+except FakeUserAgentError:
     pass
 
 
