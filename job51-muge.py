@@ -114,9 +114,13 @@ class JobCrawler:
             # every job
             if not link.startswith('https://jobs.51job.com'):
                 continue
-            resp = self.request(link)
-            tree = self.parse_resp_to_tree(resp)
-            job_details = self.parse_job(tree)
+            # 解析错误
+            try:
+                resp = self.request(link)
+                tree = self.parse_resp_to_tree(resp)
+                job_details = self.parse_job(tree)
+            except:
+                continue
             com_link = job_details[-1]
             if com_link in self.com_set:
                 continue
@@ -127,9 +131,11 @@ class JobCrawler:
 
 if __name__ == '__main__':
     urls = [
-        'https://search.51job.com/list/200200,000000,0000,00,9,99,%25E7%2594%25B5%25E6%25B0%2594%2520%25E7%2594%25B5%25E5%25AD%2590,2,1.html?lang=c&stype=&postchannel=0000&workyear=99&cotype=99&degreefrom=99&jobterm=99&companysize=02,03,04,05,06&providesalary=07,08,09,10,11&lonlat=0%2C0&radius=-1&ord_field=0&confirmdate=9&fromType=&dibiaoid=0&address=&line=&specialarea=00&from=&welfare=',
-        'https://search.51job.com/list/200200,000000,0000,00,9,99,%25E7%2594%25B5%25E5%25AD%2590%25E5%25B7%25A5%25E7%25A8%258B%25E5%25B8%2588,2,1.html?lang=c&stype=&postchannel=0000&workyear=99&cotype=99&degreefrom=99&jobterm=99&companysize=02,03,04,05,06&providesalary=07,08,09,10,11&lonlat=0%2C0&radius=-1&ord_field=0&confirmdate=9&fromType=&dibiaoid=0&address=&line=&specialarea=00&from=&welfare=',
-        'https://search.51job.com/list/200200,000000,0000,00,9,99,%25E8%2588%25AA%25E7%25A9%25BA%25E8%2588%25AA%25E5%25A4%25A9,2,1.html?lang=c&stype=&postchannel=0000&workyear=99&cotype=99&degreefrom=99&jobterm=99&companysize=02,03,04,05,06&providesalary=07,08,09,10,11&lonlat=0%2C0&radius=-1&ord_field=0&confirmdate=9&fromType=&dibiaoid=0&address=&line=&specialarea=00&from=&welfare='
+        # 测试
+        # 'https://search.51job.com/list/200200,000000,0000,00,9,99,%25E6%25B5%258B%25E8%25AF%2595,2,1.html?lang=c&stype=1&postchannel=0000&workyear=99&cotype=99&degreefrom=99&jobterm=01&companysize=02&lonlat=0%2C0&radius=-1&ord_field=0&confirmdate=9&fromType=22&dibiaoid=0&address=&line=&specialarea=00&from=&welfare=',
+        # 销售
+        'https://search.51job.com/list/200200,000000,0000,00,9,99,%25E9%2594%2580%25E5%2594%25AE,2,1.html?lang=c&stype=1&postchannel=0000&workyear=99&cotype=99&degreefrom=99&jobterm=01&companysize=02&lonlat=0%2C0&radius=-1&ord_field=0&confirmdate=9&fromType=22&dibiaoid=0&address=&line=&specialarea=00&from=&welfare='
     ]
-    crawler = JobCrawler(urls)
+    # crawler = JobCrawler(urls, filename='测试.csv')
+    crawler = JobCrawler(urls, filename='销售.csv')
     crawler.crawl()
