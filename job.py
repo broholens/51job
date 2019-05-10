@@ -19,8 +19,8 @@ class JobCrawler:
     # headers
     columns = ['company name', 'phone', 'company trade', 'company link']
     # match telephone
-    phone_ptn = re.compile('\d{11}')
-    tel_ptn = re.compile('[0-9-]{12}')
+    phone_ptn = re.compile('(1\d{10})')
+    tel_ptn = re.compile('([0-9-—]{12})')
 
     def __init__(self, start_urls=[], filename='job.csv'):
         self.ua = UserAgent()
@@ -77,8 +77,8 @@ class JobCrawler:
     def extract_info(self, tree, xp, by_xp=True, default=''):
         # extract information by xpath or regex
         info = tree.xpath(xp) if by_xp is True else tree.findall(xp)
-        info = info or ''
-        if info:
+        info = info or []
+        if info != []:
             info = ','.join([i.strip() for i in info if i.strip()])
         return info.replace('\xa0', '')
     
@@ -87,8 +87,8 @@ class JobCrawler:
         com_name = self.extract_info(tree, '//a[contains(@class, "com_name")]/p/@title')
         com_link = self.extract_info(tree, '//a[contains(@class, "com_name")]/@href')
         _, _, com_trade = tree.xpath('//div[contains(@class, "com_tag")]/p/@title')
-        job_msg = self.extract_info(tree, '//div[contains(@class, "job_msg")]/p/text()')
-        com_msg = self.extract_info(tree, '//div[starts-with(@class, "tmsg")]/text()')
+        job_msg = self.extract_info(tree, '//div[contains(@class, "job_msg")]//text()')
+        com_msg = self.extract_info(tree, '//div[starts-with(@class, "tmsg")]//text()')
         phone = self.extract_info(self.phone_ptn, job_msg+com_msg, False)
         tel = self.extract_info(self.tel_ptn, job_msg+com_msg, False)
         phone = ','.join([phone, tel]).strip(',')
@@ -128,5 +128,8 @@ class JobCrawler:
             if com_link in self.com_set:
                 continue
             self.com_set.add(com_link)
+            # 如果没有联系方式不写入
+            if job_details[1] == '':
+                return
             self.writer.writerow(job_details)
             print(job_details)
