@@ -29,6 +29,7 @@ class JobCrawler:
         self.writer = csv.writer(self.f)
         # write headers
         self.writer.writerow(self.columns)
+        self.result_count = 0
         self.urls_set = set()
         self.com_set = set()
 
@@ -106,30 +107,36 @@ class JobCrawler:
                 tree = self.parse_resp_to_tree(resp)
                 self.parse_page(tree)
 
-    def _crawl(self, url):
-        pass
+    def crawl_one(self, link):
+        """对单个链接解析结果进行过滤"""
+        if not link.startswith('https://jobs.51job.com'):
+                return []
+        # 解析错误
+        try:
+            resp = self.request(link)
+            tree = self.parse_resp_to_tree(resp)
+            job_details = self.parse_job(tree)
+        except:
+            return []
+        com_link = job_details[-1]
+        if com_link in self.com_set:
+            return []
+        self.com_set.add(com_link)
+        # 如果没有联系方式不写入
+        if job_details[1] == '':
+            return []
+        self.result_count += 1
+        self.writer.writerow(job_details)
+        return job_details
 
+    def get_urls_count(self):
+        """获取需要解析的urls数量"""
+        self.generate_urls()
+        return len(self.urls_set)
         
     def crawl(self):
         # crawl job information with given keyword
-        self.generate_urls()
+        self.get_urls_count()
         for link in self.urls_set:
             # every job
-            if not link.startswith('https://jobs.51job.com'):
-                continue
-            # 解析错误
-            try:
-                resp = self.request(link)
-                tree = self.parse_resp_to_tree(resp)
-                job_details = self.parse_job(tree)
-            except:
-                continue
-            com_link = job_details[-1]
-            if com_link in self.com_set:
-                continue
-            self.com_set.add(com_link)
-            # 如果没有联系方式不写入
-            if job_details[1] == '':
-                continue
-            self.writer.writerow(job_details)
-            print(job_details)
+            self.crawl_one(link)
