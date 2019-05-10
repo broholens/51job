@@ -130,6 +130,6 @@ class JobCrawler:
             self.com_set.add(com_link)
             # 如果没有联系方式不写入
             if job_details[1] == '':
-                return
+                continue
             self.writer.writerow(job_details)
             print(job_details)
